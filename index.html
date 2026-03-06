@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0d14">
+<title>NeuroBeat Daily</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0d14; --surface:#141824; --surface2:#1c2133; --surface3:#232840;
+  --border:#2a3050; --border2:#363d5c;
+  --accent:#6b9fff; --accent2:#9b8cff; --green:#2ecc8f;
+  --warm:#f5a623; --danger:#ff6b6b; --groove:#ff6eb4; --voice:#4dd9c0;
+  --text:#e4e8f7; --text-muted:#7d87a6; --text-dim:#3d4468;
+  --r:20px; --r-sm:12px; --r-xs:8px; --shadow:0 4px 24px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;overflow:hidden}
+#app{height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+#app::before{content:'';position:fixed;top:-40%;left:-20%;width:80%;height:80%;background:radial-gradient(ellipse,rgba(107,159,255,.05) 0%,transparent 65%);pointer-events:none;z-index:0}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;height:100%;overflow-y:auto;overflow-x:hidden;position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+.screen.active{display:flex}
+.scroll-body{flex:1;padding:18px 16px 90px;display:flex;flex-direction:column;gap:12px}
+
+/* NAV */
+.nav-header{display:flex;align-items:center;padding:13px 16px 10px;gap:11px;flex-shrink:0;position:sticky;top:0;z-index:10;background:rgba(10,13,20,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.nav-back{width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .1s}
+.nav-back:active{background:var(--surface2);transform:scale(.94)}
+.nav-title{font-size:17px;font-weight:800;flex:1}
+.nav-pill{padding:5px 12px;border-radius:50px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:16px 20px;border-radius:var(--r);border:none;font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;cursor:pointer;width:100%;min-height:56px;transition:transform .12s,opacity .12s;touch-action:manipulation}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 18px rgba(107,159,255,.28)}
+.btn-green{background:linear-gradient(135deg,#1a9e6a,var(--green));color:#fff;box-shadow:0 4px 18px rgba(46,204,143,.22)}
+.btn-warm{background:linear-gradient(135deg,#c97f0e,var(--warm));color:#fff}
+.btn-groove{background:linear-gradient(135deg,#c0357a,var(--groove));color:#fff;box-shadow:0 4px 18px rgba(255,110,180,.22)}
+.btn-voice{background:linear-gradient(135deg,#1f9982,var(--voice));color:#fff}
+.btn-danger{background:linear-gradient(135deg,#c0392b,var(--danger));color:#fff}
+.btn-ghost{background:var(--surface);color:var(--text);border:1.5px solid var(--border)}
+.btn-sm{padding:11px 16px;font-size:14px;min-height:42px;border-radius:var(--r-sm)}
+.btn-xs{padding:7px 12px;font-size:13px;min-height:34px;border-radius:var(--r-xs);width:auto}
+
+/* CARDS */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:16px}
+.card-label{font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+
+/* PILLS */
+.pill-row{display:flex;gap:7px;flex-wrap:wrap}
+.pill{padding:7px 13px;border-radius:50px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;touch-action:manipulation}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pill.fav-on{background:var(--warm);border-color:var(--warm);color:#fff}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0}
+.tl{font-size:15px;font-weight:700} .ts{font-size:12px;color:var(--text-muted);margin-top:2px}
+.toggle{width:50px;height:28px;background:var(--surface2);border:1.5px solid var(--border);border-radius:50px;position:relative;cursor:pointer;transition:background .2s,border-color .2s;flex-shrink:0}
+.toggle::after{content:'';width:20px;height:20px;background:var(--text-muted);border-radius:50%;position:absolute;top:2px;left:2px;transition:transform .2s,background .2s}
+.toggle.on{background:var(--accent);border-color:var(--accent)}
+.toggle.on::after{transform:translateX(22px);background:#fff}
+
+/* MISC */
+.divider{height:1px;background:var(--border)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.safety-footer{text-align:center;font-size:11px;color:var(--text-dim);padding:10px 16px 18px;line-height:1.6;flex-shrink:0}
+.stop-note{text-align:center;font-size:12px;color:var(--text-dim);font-weight:700}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:50px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.badge-blue{background:rgba(107,159,255,.14);color:var(--accent)}
+.badge-pink{background:rgba(255,110,180,.14);color:var(--groove)}
+.badge-teal{background:rgba(77,217,192,.14);color:var(--voice)}
+textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'Nunito',sans-serif;font-size:15px;padding:13px;resize:none;outline:none;transition:border-color .15s}
+textarea:focus{border-color:var(--accent)}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--surface3);border:1.5px solid var(--border2);color:var(--text);padding:13px 20px;border-radius:50px;font-size:14px;font-weight:700;z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:88vw;box-shadow:var(--shadow);pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounceIn{0%{transform:scale(.82);opacity:0}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+@keyframes wave{0%,100%{transform:scaleY(.4);opacity:.6}50%{transform:scaleY(1);opacity:1}}
+@keyframes groove-fall{from{top:-60px}to{top:110%}}
+@keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(107,159,255,.5)}70%{box-shadow:0 0 0 14px rgba(107,159,255,0)}100%{box-shadow:0 0 0 0 rgba(107,159,255,0)}}
+.screen.active .scroll-body{animation:fadeUp .22s ease forwards}
+
+/* HOME */
+.home-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 0 6px}
+.home-logo{width:68px;height:68px;border-radius:22px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 6px 26px rgba(107,159,255,.35);margin-bottom:12px}
+.home-title{font-size:26px;font-weight:900;letter-spacing:-.02em}
+.home-sub{font-size:14px;color:var(--text-muted);margin-top:5px;font-weight:600;line-height:1.5}
+.adaptive-hint{background:rgba(107,159,255,.08);border:1px solid rgba(107,159,255,.2);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--accent);font-weight:700;text-align:center}
+
+/* CHECK-IN */
+.ci-step{display:none;flex-direction:column;gap:13px}
+.ci-step.active{display:flex}
+.ci-q{font-size:22px;font-weight:800;text-align:center;line-height:1.35}
+.ci-sub{font-size:13px;color:var(--text-muted);text-align:center}
+.step-dots{display:flex;gap:7px;justify-content:center;padding:4px 0}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .2s}
+.sdot.active{background:var(--accent);transform:scale(1.4)}
+.sdot.done{background:var(--green)}
+
+/* BPM */
+.bpm-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bpm-num{font-family:'DM Mono',monospace;font-size:46px;font-weight:500;color:var(--accent);line-height:1;text-align:center}
+.bpm-lbl{font-size:11px;color:var(--text-muted);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;text-align:center}
+.bpm-btn{width:52px;height:52px;border-radius:14px;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s;touch-action:manipulation;flex-shrink:0}
+.bpm-btn:active{background:var(--surface3);transform:scale(.92)}
+
+/* PATTERN CARD */
+.pattern-card{background:var(--surface2);border:2px solid var(--border);border-radius:var(--r);padding:24px 14px 16px;text-align:center;min-height:148px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:border-color .08s,background .08s,box-shadow .08s,transform .08s;touch-action:manipulation;user-select:none;-webkit-user-select:none;position:relative}
+.pattern-card:active{transform:scale(.985)}
+.pattern-card.playable{border-color:rgba(107,159,255,.4)}
+.pattern-card.playable::after{content:'TAP HERE';position:absolute;bottom:8px;right:12px;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--text-dim)}
+.pattern-card.flash-green{background:rgba(46,204,143,.1);border-color:var(--green);box-shadow:0 0 26px rgba(46,204,143,.3)}
+.pattern-card.flash-yellow{background:rgba(245,166,35,.08);border-color:var(--warm);box-shadow:0 0 22px rgba(245,166,35,.25)}
+.pattern-card.flash-red{background:rgba(255,107,107,.07);border-color:var(--danger);box-shadow:0 0 18px rgba(255,107,107,.2)}
+.pat-name{font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase}
+.pat-label{font-size:16px;font-weight:700;color:var(--text)}
+.pat-hint{font-size:12px;color:var(--text-muted);line-height:1.5;padding:0 6px}
+.pat-steps{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;letter-spacing:.08em;color:var(--text);line-height:1.6}
+.step-on{color:var(--accent);font-size:23px} .step-off{color:var(--text-dim)}
+.beat-dots{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.bdot{width:17px;height:17px;border-radius:50%;background:var(--border);transition:background .05s,transform .05s,box-shadow .05s}
+.bdot.on{background:var(--accent);box-shadow:0 0 10px rgba(107,159,255,.6);transform:scale(1.3)}
+.bdot.rest{background:var(--surface2);border:1.5px solid var(--border)}
+.wave-row{display:flex;align-items:center;justify-content:center;gap:4px;padding:4px}
+.wbar{width:3px;background:var(--accent);border-radius:2px;animation:wave .8s ease-in-out infinite}
+.wbar:nth-child(1){height:10px;animation-delay:0s}.wbar:nth-child(2){height:18px;animation-delay:.15s}.wbar:nth-child(3){height:14px;animation-delay:.3s}.wbar:nth-child(4){height:20px;animation-delay:.1s}.wbar:nth-child(5){height:9px;animation-delay:.25s}
+.tap-feedback-row{display:flex;justify-content:space-between;align-items:center;width:100%;padding:0 2px;margin-top:3px}
+.tap-lbl{font-size:12px;font-weight:800;color:var(--text-muted);letter-spacing:.05em;text-transform:uppercase;min-height:16px;transition:color .15s}
+.tap-lbl.green{color:var(--green)}.tap-lbl.yellow{color:var(--warm)}.tap-lbl.red{color:var(--danger)}
+.tap-dots{display:flex;gap:4px;flex-wrap:wrap}
+.tdot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+.tdot.green{background:var(--green)}.tdot.yellow{background:var(--warm)}.tdot.red{background:var(--danger)}
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.encouragement{background:linear-gradient(135deg,rgba(46,204,143,.09),rgba(46,204,143,.04));border:1.5px solid rgba(46,204,143,.2);border-radius:var(--r-sm);padding:13px;text-align:center;font-size:14px;font-weight:700;color:var(--green);line-height:1.5}
+.ab-q{font-size:17px;font-weight:700;text-align:center;color:var(--text)}
+.ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}
+
+/* WIN LOG */
+.win-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.win-opt{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-sm);padding:14px 10px;text-align:center;cursor:pointer;transition:all .14s;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--text-muted);line-height:1.4;touch-action:manipulation}
+.win-opt.sel{border-color:var(--green);background:rgba(46,204,143,.08);color:var(--green)}
+.mood-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.mood-opt{background:var(--surface);border:2px solid var(--border);border-radius:var(--r-sm);padding:10px 4px;text-align:center;cursor:pointer;transition:all .14s;font-size:12px;font-weight:700;color:var(--text-muted);touch-action:manipulation}
+.mood-opt .me{font-size:22px;display:block;margin-bottom:3px}
+.mood-opt.sel{border-color:var(--accent);background:rgba(107,159,255,.08);color:var(--accent)}
+
+/* HISTORY */
+.hist-item{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px;cursor:pointer;transition:border-color .14s}
+.hist-item:active{border-color:var(--accent)}
+.hist-date{font-size:15px;font-weight:800}
+.hist-meta{font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.6}
+.hist-win{font-size:12px;color:var(--green);font-weight:700;margin-top:4px}
+.hist-detail{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px;font-size:13px;color:var(--text-muted);line-height:1.8;display:none;margin-top:6px}
+.hist-detail.open{display:block}
+.empty-state{text-align:center;padding:44px 20px;color:var(--text-dim);font-size:14px;font-weight:600;line-height:1.8}
+.empty-icon{font-size:42px;display:block;margin-bottom:10px}
+
+/* GROOVE */
+.groove-stage{position:relative;background:var(--surface2);border:2px solid var(--border);border-radius:var(--r);overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.groove-lane{width:80px;height:320px;margin:0 auto;position:relative}
+.groove-target{position:absolute;bottom:50px;left:0;right:0;height:50px;background:rgba(107,159,255,.07);border-top:2px solid rgba(107,159,255,.28);border-bottom:2px solid rgba(107,159,255,.28);display:flex;align-items:center;justify-content:center}
+.groove-ring{width:50px;height:50px;border-radius:50%;border:2.5px solid rgba(107,159,255,.45);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-dim);font-weight:800}
+.groove-note{position:absolute;left:50%;transform:translateX(-50%);width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--groove),#ff9de2);box-shadow:0 0 16px rgba(255,110,180,.5);display:flex;align-items:center;justify-content:center;font-size:20px;animation:groove-fall linear forwards}
+.groove-flash{position:absolute;inset:0;border-radius:var(--r);pointer-events:none;transition:background .1s;background:transparent}
+.groove-flash.hit{background:rgba(46,204,143,.18)}
+.groove-flash.miss{background:rgba(107,159,255,.08)}
+.groove-scores{display:flex;justify-content:space-between;align-items:center;padding:10px 14px 0}
+.groove-val{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--groove)}
+.groove-lbl{font-size:10px;color:var(--text-muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.groove-tap{width:100%;min-height:68px;border-radius:var(--r);border:2.5px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:'Nunito',sans-serif;font-size:19px;font-weight:900;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:all .08s;touch-action:manipulation}
+.groove-tap.lit{border-color:var(--groove);background:rgba(255,110,180,.1);color:var(--groove);box-shadow:0 0 20px rgba(255,110,180,.3)}
+.groove-fb{font-size:20px;font-weight:900;text-align:center;min-height:30px;color:var(--text-dim);transition:color .15s}
+
+/* VOICE */
+.voice-card{background:var(--surface2);border:2px solid var(--border);border-radius:var(--r);padding:26px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;min-height:170px;justify-content:center}
+.voice-word{font-size:44px;font-weight:900;color:var(--voice);letter-spacing:.02em;transition:transform .1s,color .1s}
+.voice-word.pulse{transform:scale(1.12);color:#fff}
+.voice-hint{font-size:13px;color:var(--text-muted);font-weight:600;line-height:1.5}
+.voice-bdot{width:22px;height:22px;border-radius:50%;background:var(--surface3);border:2px solid var(--border);transition:background .06s,box-shadow .06s,transform .06s}
+.voice-bdot.on{background:var(--voice);box-shadow:0 0 11px rgba(77,217,192,.6);transform:scale(1.3)}
+
+/* HOW TO */
+.howto-section{display:flex;flex-direction:column;gap:9px}
+.howto-sec-title{font-size:11px;font-weight:800;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;padding:3px 0 0}
+.howto-step{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;display:flex;gap:11px;align-items:flex-start}
+.howto-num{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--border);color:var(--accent);font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.howto-text{font-size:14px;font-weight:600;color:var(--text);line-height:1.5}
+.howto-text small{color:var(--text-muted);font-size:12px;display:block;margin-top:2px}
+.howto-tip{background:rgba(46,204,143,.07);border:1.5px solid rgba(46,204,143,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:13px;color:var(--green);font-weight:700;line-height:1.6}
+.howto-warn{background:rgba(245,166,35,.07);border:1.5px solid rgba(245,166,35,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:13px;color:var(--warm);font-weight:700;line-height:1.6}
+
+/* ONBOARDING */
+#onboarding{position:fixed;inset:0;background:rgba(8,10,18,.97);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;animation:fadeUp .25s ease}
+#onboarding.hidden{display:none}
+.ob-sheet{background:var(--surface);border:1.5px solid var(--border);border-radius:26px 26px 0 0;width:100%;max-height:90dvh;display:flex;flex-direction:column;overflow:hidden}
+.ob-scroll{flex:1;overflow-y:auto;padding:24px 20px 8px;-webkit-overflow-scrolling:touch}
+.ob-nav-bar{flex-shrink:0;padding:11px 20px 32px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ob-dots{display:flex;gap:6px;flex:1;justify-content:center}
+.ob-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .2s,width .2s}
+.ob-dot.active{background:var(--accent);width:16px;border-radius:3px}
+.ob-btn{padding:10px 17px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap}
+.ob-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}
+.ob-emoji{font-size:46px;text-align:center;display:block;margin-bottom:10px}
+.ob-title{font-size:21px;font-weight:900;text-align:center;color:var(--text);line-height:1.3;margin-bottom:11px}
+.ob-body{font-size:14px;color:var(--text-muted);line-height:1.7;font-weight:600}
+.ob-body strong{color:var(--text)}
+.ob-step{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;display:flex;gap:11px;align-items:flex-start;margin-bottom:8px}
+.ob-step-n{width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ob-step-t{font-size:14px;font-weight:700;color:var(--text);line-height:1.5}
+.ob-step-t span{color:var(--text-muted);font-size:12px;display:block;margin-top:2px}
+.ob-tip{background:rgba(107,159,255,.08);border:1.5px solid rgba(107,159,255,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:13px;color:var(--accent);font-weight:700;line-height:1.5;margin-top:10px}
+#ob-track{display:flex;transition:transform .32s cubic-bezier(.4,0,.2,1)}
+.ob-slide{min-width:100%}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HOME -->
+<div id="home-screen" class="screen active">
+  <div class="scroll-body" style="padding-top:28px">
+    <div class="home-hero">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+        <div class="home-logo">🎵</div>
+        <button onclick="goTo('howto-screen')" style="width:38px;height:38px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);color:var(--accent);font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">?</button>
+      </div>
+      <h1 class="home-title">NeuroBeat Daily</h1>
+      <p class="home-sub">Short rhythm reps. Stop anytime.</p>
+    </div>
+    <div id="adaptive-hint" class="adaptive-hint" style="display:none"></div>
+    <button class="btn btn-primary" style="font-size:19px;min-height:62px" onclick="quickStart()"><span>⚡</span> Quick Start</button>
+    <button class="btn btn-green" onclick="goTo('checkin-screen')"><span>🗓</span> Start Daily Session</button>
+    <button class="btn btn-warm" onclick="goTo('beat-screen')"><span>🥁</span> Beat Reps</button>
+    <button class="btn btn-ghost" onclick="goTo('winlog-screen')"><span>⭐</span> Win Log</button>
+    <div class="divider"></div>
+    <button class="btn btn-groove btn-sm" onclick="goTo('groove-screen')"><span>🎮</span> Groove Mode</button>
+    <button class="btn btn-voice btn-sm" onclick="goTo('voice-screen')"><span>🎤</span> Voice Reps</button>
+    <div class="two-col">
+      <button class="btn btn-ghost btn-sm" onclick="goTo('history-screen')">📋 History</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('settings-screen')">⚙️ Settings</button>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="goTo('export-screen')">📤 Export Logs</button>
+    <p class="stop-note">Every session counts. Stop anytime. 💙</p>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+<!-- CHECK-IN -->
+<div id="checkin-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="goBack()">←</button><span class="nav-title">Check-In</span></div>
+  <div class="scroll-body">
+    <div class="step-dots"><div class="sdot active" id="ci-d0"></div><div class="sdot" id="ci-d1"></div><div class="sdot" id="ci-d2"></div></div>
+    <div class="ci-step active" id="ci-s0">
+      <p class="ci-q">Energy okay today?</p><p class="ci-sub">Read aloud. Watch for a signal.</p>
+      <div class="two-col"><button class="btn btn-green" onclick="ciAnswer('energy','Yes',1)">😊 Yes</button><button class="btn btn-ghost" onclick="ciAnswer('energy','Not really',1)">😴 Not really</button></div>
+    </div>
+    <div class="ci-step" id="ci-s1">
+      <p class="ci-q">Any pain or discomfort?</p><p class="ci-sub">Check in before starting.</p>
+      <div class="two-col"><button class="btn btn-green" onclick="ciAnswer('pain','No',2)">👍 No</button><button class="btn btn-danger" onclick="ciAnswer('pain','Yes',2)">⚠️ Yes</button></div>
+    </div>
+    <div class="ci-step" id="ci-s2">
+      <p class="ci-q">Choose today's session</p><p class="ci-sub">Whatever feels right today.</p>
+      <button class="btn btn-primary" onclick="ciChoose('Short')">⚡ Short <span style="opacity:.7;font-size:13px">(~3 min)</span></button>
+      <button class="btn btn-warm" onclick="ciChoose('Normal')">🎯 Normal <span style="opacity:.7;font-size:13px">(~6 min)</span></button>
+      <button class="btn btn-ghost" onclick="ciChoose('Skip')">💙 Skip Today</button>
+    </div>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+<!-- BEAT REPS -->
+<div id="beat-screen" class="screen">
+  <div class="nav-header">
+    <button class="nav-back" onclick="stopAndBack()">←</button>
+    <span class="nav-title">Beat Reps</span>
+    <button id="fav-btn" onclick="toggleFav()" style="background:none;border:none;font-size:22px;cursor:pointer;padding:4px">☆</button>
+  </div>
+  <div class="scroll-body">
+    <div class="card"><div class="bpm-row"><button class="bpm-btn" onclick="changeBPM(-5)">−</button><div><div class="bpm-num" id="bpm-num">70</div><div class="bpm-lbl">BPM</div></div><button class="bpm-btn" onclick="changeBPM(5)">+</button></div></div>
+    <div class="pill-row" id="ex-tabs">
+      <button class="pill active" onclick="selEx('steady',this)">Steady</button>
+      <button class="pill" onclick="selEx('echo',this)">Echo</button>
+      <button class="pill" onclick="selEx('abmatch',this)">A/B Match</button>
+      <button class="pill" onclick="selEx('fillgap',this)">Fill Gap</button>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--text-muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em">Level:</span>
+      <button class="pill active" onclick="selLevel(1,this)" id="lvl-1">1</button>
+      <button class="pill" onclick="selLevel(2,this)" id="lvl-2">2</button>
+      <button class="pill" onclick="selLevel(3,this)" id="lvl-3">3</button>
+      <button class="pill" id="fav-filter" onclick="toggleFavFilter(this)">⭐ Favs</button>
+    </div>
+    <div class="pill-row" id="tag-pills" style="gap:5px"></div>
+    <div class="pattern-card" id="pat-card" onpointerdown="registerTap()">
+      <div class="pat-name" id="pat-name">STEADY BEAT</div>
+      <div class="pat-label" id="pat-label">Keep a steady pulse</div>
+      <div class="beat-dots" id="beat-dots"></div>
+      <div class="pat-steps" id="pat-steps">TAP TAP TAP TAP</div>
+      <div class="pat-hint" id="pat-hint">Listen and tap along</div>
+      <div class="wave-row" id="wave-row" style="display:none"><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div></div>
+      <div id="tap-inline" style="display:none;width:100%">
+        <div class="tap-feedback-row"><div class="tap-lbl" id="tap-lbl">—</div><div class="tap-dots" id="tap-dots"></div></div>
+      </div>
+    </div>
+    <div id="ab-section" style="display:none">
+      <div class="card"><div class="ab-q">Which matched the first?</div>
+        <div class="ab-grid"><button class="btn btn-ghost" onclick="abAnswer('A')">👈 Pattern A</button><button class="btn btn-ghost" onclick="abAnswer('B')">Pattern B 👉</button></div>
+        <div id="ab-reveal" style="display:none;margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="revealAB()">👁 Reveal Answer</button><div id="ab-ans" style="display:none;text-align:center;padding:8px;color:var(--green);font-weight:700;font-size:14px"></div></div>
+      </div>
+    </div>
+    <div id="enc-box" class="encouragement" style="display:none"></div>
+    <div class="card" style="padding:13px">
+      <div class="card-label">Who's tapping?</div>
+      <div class="pill-row">
+        <button class="pill active" id="tm-cg" onclick="setTapMode('caregiver',this)">🤝 Caregiver</button>
+        <button class="pill" id="tm-pt" onclick="setTapMode('patient',this)">🖐 They tap</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:7px;font-weight:600" id="tm-desc">You tap the card when you notice them responding</div>
+    </div>
+    <div class="controls-grid">
+      <button class="btn btn-primary" id="play-btn" onclick="playPattern()">▶ Play</button>
+      <button class="btn btn-ghost" onclick="repeatPattern()">🔁 ×3</button>
+      <button class="btn btn-ghost" onclick="nextPattern()">⏭ Next</button>
+      <button class="btn btn-danger btn-sm" onclick="stopPlayback()">⏹ Stop</button>
+    </div>
+    <p class="stop-note">Take your time. Stop anytime.</p>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+<!-- WIN LOG -->
+<div id="winlog-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="goBack()">←</button><span class="nav-title">Win Log</span></div>
+  <div class="scroll-body">
+    <div class="card">
+      <div class="card-label">Today's Win 🏆</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:11px">Every single one of these counts.</p>
+      <div class="win-grid">
+        <button class="win-opt" onclick="selWin(this,'Showed up')">🙌 Showed up</button>
+        <button class="win-opt" onclick="selWin(this,'Matched a beat')">🎯 Matched a beat</button>
+        <button class="win-opt" onclick="selWin(this,'Squeezed along')">✊ Squeezed along</button>
+        <button class="win-opt" onclick="selWin(this,'Stayed calm')">🕊 Stayed calm</button>
+        <button class="win-opt" onclick="selWin(this,'Tried when tired')">💪 Tried when tired</button>
+        <button class="win-opt" onclick="selWin(this,'Just listened')">👂 Just listened</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Session Difficulty</div>
+      <div class="pill-row">
+        <button class="pill" id="diff-easy" onclick="selDiff(this,'easy')">😊 Easy</button>
+        <button class="pill active" id="diff-ok" onclick="selDiff(this,'ok')">👍 OK</button>
+        <button class="pill" id="diff-hard" onclick="selDiff(this,'hard')">😓 Hard</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:7px;font-weight:600">Helps suggest better patterns next time</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Mood 💭</div>
+      <div class="mood-grid">
+        <button class="mood-opt" onclick="selMood(this,'Calm')"><span class="me">😌</span>Calm</button>
+        <button class="mood-opt" onclick="selMood(this,'Tired')"><span class="me">😴</span>Tired</button>
+        <button class="mood-opt" onclick="selMood(this,'Frustrated')"><span class="me">😤</span>Frustrated</button>
+        <button class="mood-opt" onclick="selMood(this,'Proud')"><span class="me">🥹</span>Proud</button>
+      </div>
+    </div>
+    <div class="card"><div class="card-label">Note ✏️</div><textarea id="win-note" placeholder="Anything worth remembering..." rows="3"></textarea></div>
+    <button class="btn btn-green" style="font-size:19px;padding:20px" onclick="saveWin()">⭐ Save Today's Win</button>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+<!-- GROOVE MODE -->
+<div id="groove-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="grooveStop();goBack()">←</button><span class="nav-title">Groove Mode 🎮</span></div>
+  <div class="scroll-body">
+    <div class="card" style="text-align:center;padding:13px"><div class="badge badge-pink" style="margin-bottom:7px">Rhythm Game</div><p style="font-size:13px;color:var(--text-muted);line-height:1.6">Notes fall down the lane. Tap when they hit the ring. No wrong answers — just groove.</p></div>
+    <div class="card"><div class="bpm-row"><button class="bpm-btn" onclick="changeGrooveBPM(-5)">−</button><div><div class="bpm-num" id="g-bpm">60</div><div class="bpm-lbl">BPM</div></div><button class="bpm-btn" onclick="changeGrooveBPM(5)">+</button></div></div>
+    <div class="groove-stage" id="groove-stage">
+      <div class="groove-scores"><div><div class="groove-val" id="g-hits">0</div><div class="groove-lbl">Taps</div></div><div style="text-align:right"><div class="groove-val" id="g-streak" style="color:var(--warm)">0</div><div class="groove-lbl">Streak</div></div></div>
+      <div class="groove-lane" id="groove-lane"><div class="groove-target"><div class="groove-ring" id="groove-ring">TAP</div></div></div>
+      <div class="groove-flash" id="groove-flash"></div>
+    </div>
+    <div class="groove-fb" id="groove-fb">Ready when you are</div>
+    <button class="groove-tap" id="groove-tap" onpointerdown="grooveTap()"><span style="font-size:30px">👆</span><span>TAP THE BEAT</span></button>
+    <div class="controls-grid">
+      <button class="btn btn-groove" id="groove-play" onclick="grooveToggle()">▶ Start</button>
+      <button class="btn btn-danger btn-sm" onclick="grooveStop()">⏹ Stop</button>
+    </div>
+    <p class="stop-note">30–60 second sessions. Stop anytime.</p>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+<!-- VOICE REPS -->
+<div id="voice-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="voiceStop();goBack()">←</button><span class="nav-title">Voice Reps 🎤</span></div>
+  <div class="scroll-body">
+    <div class="card" style="text-align:center;padding:13px"><div class="badge badge-teal" style="margin-bottom:7px">Speech Pacing</div><p style="font-size:13px;color:var(--text-muted);line-height:1.6">Say each word or number on the beat. Mouthing the words silently still counts. Stop if tired.</p></div>
+    <div class="pill-row" id="voice-tabs">
+      <button class="pill active" onclick="selVoiceEx('count',this)">1-2-3 Count</button>
+      <button class="pill" onclick="selVoiceEx('phrase',this)">Phrases</button>
+      <button class="pill" onclick="selVoiceEx('yesno',this)">Yes / No</button>
+    </div>
+    <div class="card"><div class="bpm-row"><button class="bpm-btn" onclick="changeVoiceBPM(-5)">−</button><div><div class="bpm-num" id="v-bpm">60</div><div class="bpm-lbl">BPM</div></div><button class="bpm-btn" onclick="changeVoiceBPM(5)">+</button></div></div>
+    <div class="voice-card" id="voice-card">
+      <div class="beat-dots" id="voice-beat-dots"></div>
+      <div class="voice-word" id="voice-word">—</div>
+      <div class="voice-hint" id="voice-hint">Choose an exercise above, then tap Start</div>
+    </div>
+    <div id="phrase-sel" style="display:none">
+      <div class="card-label">Choose a phrase</div>
+      <div class="pill-row" id="phrase-pills"></div>
+    </div>
+    <div class="controls-grid">
+      <button class="btn btn-voice" id="voice-play" onclick="voiceToggle()">▶ Start</button>
+      <button class="btn btn-danger btn-sm" onclick="voiceStop()">⏹ Stop</button>
+    </div>
+    <p class="stop-note">Say it out loud or just mouth the words. All attempts count.</p>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+<!-- HISTORY -->
+<div id="history-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="goBack()">←</button><span class="nav-title">History</span></div>
+  <div class="scroll-body" id="history-list"></div>
+</div>
+
+<!-- EXPORT -->
+<div id="export-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="goBack()">←</button><span class="nav-title">Export Logs</span></div>
+  <div class="scroll-body">
+    <div class="card"><div class="card-label">Text Summary</div><div id="exp-text" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);line-height:1.8;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all"></div><button class="btn btn-primary btn-sm" style="margin-top:11px" onclick="copyExp('text')">📋 Copy Summary</button></div>
+    <div class="card"><div class="card-label">JSON Data</div><div id="exp-json" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);line-height:1.8;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all"></div><button class="btn btn-ghost btn-sm" style="margin-top:11px" onclick="copyExp('json')">📋 Copy JSON</button></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="goBack()">←</button><span class="nav-title">Settings</span></div>
+  <div class="scroll-body">
+    <div class="card" style="gap:13px;display:flex;flex-direction:column">
+      <div class="card-label">Default BPM</div>
+      <div style="font-family:'DM Mono',monospace;font-size:36px;font-weight:500;color:var(--accent)" id="s-bpm-val">70</div>
+      <input type="range" id="s-bpm" min="50" max="100" value="70" oninput="sBPMChange(this.value)" style="-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:var(--border);outline:none">
+    </div>
+    <div class="card" style="gap:11px;display:flex;flex-direction:column">
+      <div class="card-label">Session Preset</div>
+      <div class="pill-row"><button class="pill active" id="sp-short" onclick="selPreset('Short',this)">⚡ Short (~3 min)</button><button class="pill" id="sp-normal" onclick="selPreset('Normal',this)">🎯 Normal (~6 min)</button></div>
+    </div>
+    <div class="card" style="gap:11px;display:flex;flex-direction:column">
+      <div class="card-label">Sound Preset</div>
+      <div class="pill-row"><button class="pill active" id="snd-click" onclick="selSound('click',this)">🔔 Click</button><button class="pill" id="snd-kick" onclick="selSound('kick',this)">🥁 Kick+Click</button></div>
+      <button class="btn btn-ghost btn-sm" onclick="testSound()">🔊 Test Sound</button>
+    </div>
+    <div class="card" style="gap:13px;display:flex;flex-direction:column">
+      <div class="card-label">Options</div>
+      <div class="toggle-row"><div><div class="tl">Count-In</div><div class="ts">4 beats before pattern</div></div><div class="toggle" id="tog-countin" onclick="togSet('countIn')"></div></div>
+      <div class="divider"></div>
+      <div class="toggle-row"><div><div class="tl">Reveal Answer</div><div class="ts">A/B Match reveal button</div></div><div class="toggle on" id="tog-reveal" onclick="togSet('showReveal')"></div></div>
+      <div class="divider"></div>
+      <div class="toggle-row"><div><div class="tl">Vibration</div><div class="ts">Haptic feedback on beat</div></div><div class="toggle on" id="tog-haptic" onclick="togSet('haptics')"></div></div>
+    </div>
+    <div class="card" style="gap:9px;display:flex;flex-direction:column">
+      <div class="card-label">Tutorial</div>
+      <button class="btn btn-primary btn-sm" onclick="replayOnboarding()">📖 Replay Tutorial</button>
+      <div class="divider"></div>
+      <div class="card-label" style="color:var(--danger)">Danger Zone</div>
+      <button class="btn btn-danger btn-sm" onclick="clearAllLogs()">🗑 Clear All Logs</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetAdaptive()">↺ Reset Adaptive Engine</button>
+    </div>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+<!-- HOW TO USE -->
+<div id="howto-screen" class="screen">
+  <div class="nav-header"><button class="nav-back" onclick="goBack()">←</button><span class="nav-title">How To Use</span></div>
+  <div class="scroll-body">
+    <div class="howto-tip">💙 You don't need to do this perfectly. Any time spent doing this together is time well spent.</div>
+    <div class="howto-section">
+      <div class="howto-sec-title">Before You Start</div>
+      <div class="howto-step"><div class="howto-num">1</div><div class="howto-text">Find a calm, quiet moment.<small>Turn off the TV. Sit close so they can see your face.</small></div></div>
+      <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">Make sure the phone isn't on silent.<small>iPhone: no orange stripe on side switch. Android: volume up.</small></div></div>
+      <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">Tap any button to wake up the sound.<small>One tap activates audio on all phones before it plays.</small></div></div>
+    </div>
+    <div class="howto-section">
+      <div class="howto-sec-title">Quick Start vs Daily Session</div>
+      <div class="howto-step"><div class="howto-num">⚡</div><div class="howto-text"><strong>Quick Start</strong> — one tap, goes straight into Beat Reps.<small>Best for days when you just want to go without setup.</small></div></div>
+      <div class="howto-step"><div class="howto-num">🗓</div><div class="howto-text"><strong>Daily Session</strong> — guided Check-In then Beat Reps.<small>Good when you want to log energy and pain levels first.</small></div></div>
+    </div>
+    <div class="howto-section">
+      <div class="howto-sec-title">Beat Reps</div>
+      <div class="howto-step"><div class="howto-num">1</div><div class="howto-text">Choose who's tapping before pressing Play.<small>"Caregiver" = you tap. "They tap" = hand them the phone.</small></div></div>
+      <div class="howto-step"><div class="howto-num">2</div><div class="howto-text">Tap the pattern card on the beat — the whole card lights up.<small>🟢 On the beat · 🟡 Close · 🔴 Off beat. All attempts count.</small></div></div>
+      <div class="howto-step"><div class="howto-num">3</div><div class="howto-text">Star ⭐ patterns worth coming back to.<small>Tap the ☆ in the top right corner to save a favorite.</small></div></div>
+    </div>
+    <div class="howto-section">
+      <div class="howto-sec-title">Groove Mode 🎮</div>
+      <div class="howto-step"><div class="howto-num">🎮</div><div class="howto-text">Notes fall down the screen — tap when they reach the ring.<small>No fail state. No wrong answer. Just groove. Great for visual engagement.</small></div></div>
+    </div>
+    <div class="howto-section">
+      <div class="howto-sec-title">Voice Reps 🎤</div>
+      <div class="howto-step"><div class="howto-num">🎤</div><div class="howto-text">Say each word or number out loud on the beat.<small>Mouthing the words silently still counts. Stop anytime.</small></div></div>
+    </div>
+    <div class="howto-section">
+      <div class="howto-sec-title">Tips</div>
+      <div class="howto-tip">✅ Short sessions 3× a week beat long sessions once a week.</div>
+      <div class="howto-tip">✅ Your voice matters as much as the app. Talk them through each exercise.</div>
+      <div class="howto-tip">✅ It's okay if they don't respond. Being present in the rhythm is still working.</div>
+      <div class="howto-warn">⚠️ Always follow guidance from their medical team. Stop if anything seems wrong.</div>
+    </div>
+    <button class="btn btn-primary" onclick="goBack()">← Back to Home</button>
+  </div>
+  <p class="safety-footer">This app supports engagement but does not replace guidance from medical professionals.</p>
+</div>
+
+</div><!-- #app -->
+
+<!-- ONBOARDING -->
+<div id="onboarding" class="hidden">
+  <div class="ob-sheet">
+    <div class="ob-scroll">
+      <div style="overflow:hidden"><div id="ob-track">
+        <div class="ob-slide">
+          <span class="ob-emoji">🎵</span>
+          <div class="ob-title">Welcome to NeuroBeat Daily</div>
+          <div class="ob-body">Short, calm rhythm sessions to support recovery — guided by you, the caregiver.<br><br>Takes <strong>less than 10 minutes</strong>. You'll always know exactly what to do.</div>
+          <div class="ob-tip">💙 No musical experience needed. Just show up.</div>
+        </div>
+        <div class="ob-slide">
+          <span class="ob-emoji">⚡</span>
+          <div class="ob-title">Four ways to engage</div>
+          <div class="ob-step"><div class="ob-step-n">1</div><div class="ob-step-t">Quick Start <span>One tap — straight into rhythm. No setup needed.</span></div></div>
+          <div class="ob-step"><div class="ob-step-n">2</div><div class="ob-step-t">Daily Session <span>Check-In first, then guided rhythm exercises.</span></div></div>
+          <div class="ob-step"><div class="ob-step-n">3</div><div class="ob-step-t">Groove Mode <span>Notes fall down — tap when they hit the ring. Visual and fun.</span></div></div>
+          <div class="ob-step"><div class="ob-step-n">4</div><div class="ob-step-t">Voice Reps <span>Say words or numbers on the beat. Great for speech pacing.</span></div></div>
+        </div>
+        <div class="ob-slide">
+          <span class="ob-emoji">🥁</span>
+          <div class="ob-title">The pattern card is the tap target</div>
+          <div class="ob-body">When a pattern plays, <strong>tap the big card</strong> on the beat. The whole card lights up to show how close the timing was.<br><br>🟢 Green = on the beat<br>🟡 Yellow = close<br>🔴 Red = off beat</div>
+          <div class="ob-tip">All attempts count. There are no wrong answers here.</div>
+        </div>
+        <div class="ob-slide">
+          <span class="ob-emoji">🔊</span>
+          <div class="ob-title">Quick sound checklist</div>
+          <div class="ob-step"><div class="ob-step-n">!</div><div class="ob-step-t">Check the mute switch <span>iPhone: no orange stripe. Android: volume buttons up.</span></div></div>
+          <div class="ob-step"><div class="ob-step-n">✓</div><div class="ob-step-t">Tap any button first <span>One tap wakes up audio on all phones.</span></div></div>
+          <div class="ob-tip">🎵 Try Settings → Kick+Click for a softer drum sound.</div>
+        </div>
+        <div class="ob-slide">
+          <span class="ob-emoji">🙌</span>
+          <div class="ob-title">You've got this.</div>
+          <div class="ob-body">There's no wrong way to do this. If they respond — wonderful. If they don't — the rhythm still reaches them.<br><br>Tap the <strong>? button</strong> on the home screen anytime to come back to this guide.</div>
+          <div class="ob-tip">💙 Showing up builds the brain.</div>
+        </div>
+      </div></div>
+    </div>
+    <div class="ob-nav-bar">
+      <button class="ob-btn" id="ob-prev" onclick="obPrev()" style="visibility:hidden">← Back</button>
+      <div class="ob-dots" id="ob-dots"></div>
+      <button class="ob-btn primary" id="ob-next" onclick="obNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+//  PATTERN LIBRARY MODULE
+// ══════════════════════════════════════════
+const PatLib = (function(){
+  const P = [
+    // Level 1
+    {id:'s1',d:1,s:[1,1,1,1],t:['steady','warmup']},
+    {id:'s2',d:1,s:[1,1,0,1],t:['steady','warmup']},
+    {id:'s3',d:1,s:[1,0,1,0],t:['steady','warmup']},
+    {id:'s4',d:1,s:[1,1,0,0],t:['steady','easy']},
+    {id:'s5',d:1,s:[1,0,0,1],t:['steady','easy']},
+    {id:'s6',d:1,s:[1,1,1,0],t:['steady','warmup']},
+    {id:'s7',d:1,s:[1,0,0,0],t:['easy','warmup']},
+    {id:'s8',d:1,s:[0,0,1,1],t:['easy','warmup']},
+    {id:'s9',d:1,s:[1,0,1,0,1,0,1,0],t:['steady','boom_bap']},
+    {id:'s10',d:1,s:[1,1,1,1,1,1,1,1],t:['steady','warmup']},
+    {id:'s11',d:1,s:[1,0,0,1,0,0],t:['steady','warmup']},
+    {id:'s12',d:1,s:[1,1,0,1,1,0],t:['echo','memory']},
+    {id:'s13',d:1,s:[1,0,1,1],t:['fill_gap','easy']},
+    {id:'s14',d:1,s:[1,0,0,1,0,1],t:['boom_bap','steady']},
+    // Level 2
+    {id:'m1',d:2,s:[1,1,0,1,0,1],t:['echo','flow']},
+    {id:'m2',d:2,s:[1,0,1,1,0,1],t:['memory','flow']},
+    {id:'m3',d:2,s:[1,0,0,1,1,0,0,1],t:['fill_gap','memory']},
+    {id:'m4',d:2,s:[1,0,1,0,1,1,0,0],t:['flow','boom_bap']},
+    {id:'m5',d:2,s:[1,1,0,0,1,0,1,1],t:['flow','echo']},
+    {id:'m6',d:2,s:[1,0,0,1,0,1],t:['memory','echo']},
+    {id:'m7',d:2,s:[1,0,1,0,1,0],t:['steady','flow']},
+    {id:'m8',d:2,s:[1,0,0,1,0,0,1,0],t:['boom_bap','flow']},
+    {id:'m9',d:2,s:[1,1,1,0,1,1],t:['memory','echo']},
+    {id:'m10',d:2,s:[1,0,0,0,1,0,0,0],t:['steady','fill_gap']},
+    {id:'m11',d:2,s:[1,0,1,1,0,0],t:['flow','boom_bap']},
+    {id:'m12',d:2,s:[0,1,1,0,1,1],t:['echo','memory']},
+    {id:'m13',d:2,s:[1,1,0,1,0,1,0,1],t:['fill_gap','flow']},
+    {id:'m14',d:2,s:[1,0,1,0,0,1,1,0],t:['fill_gap','memory']},
+    {id:'m15',d:2,s:[1,0,0,1,1,0,1,0],t:['flow','boom_bap']},
+    {id:'m16',d:2,s:[1,0,0,1,0,0,1,0,0],t:['steady','flow']},
+    // Level 3
+    {id:'h1',d:3,s:[1,0,1,0,0,1,0,1],t:['syncopation','flow']},
+    {id:'h2',d:3,s:[1,0,0,0,0,1,0,0,1,0,0,1],t:['syncopation','boom_bap']},
+    {id:'h3',d:3,s:[1,0,1,1,0,1,0,0],t:['flow','syncopation']},
+    {id:'h4',d:3,s:[1,0,0,1,0,0,1,0],t:['syncopation','boom_bap']},
+    {id:'h5',d:3,s:[1,1,0,1,1,0,1,0],t:['flow','groove']},
+    {id:'h6',d:3,s:[1,0,0,1,0,0,0,1,0,0,1,0],t:['syncopation','memory']},
+    {id:'h7',d:3,s:[1,1,0,1,0,1,1,0],t:['flow','memory']},
+    {id:'h8',d:3,s:[0,1,0,1,0,1,0,1],t:['syncopation','echo']},
+    {id:'h9',d:3,s:[1,0,1,0,0,1,0,1,1,0],t:['syncopation','flow']},
+    {id:'h10',d:3,s:[1,0,0,1,0,1,0,0,1,0,0,1],t:['groove','boom_bap']},
+    {id:'h11',d:3,s:[1,0,0,1,0,0,1,1],t:['syncopation','groove']},
+    {id:'h12',d:3,s:[1,0,0,0,1,0,0,0,1,0,0,0],t:['steady','flow']},
+    {id:'h13',d:3,s:[1,1,0,0,1,1,0,0],t:['groove','steady']},
+    {id:'h14',d:3,s:[1,0,0,1,0,0,0,1,0,0,1,0,0,0,1,0],t:['flow','syncopation']},
+  ];
+  const AB = [
+    {a:{id:'ab1a',d:1,s:[1,1,0,1]},b:{id:'ab1b',d:1,s:[1,0,1,1]},ans:'A'},
+    {a:{id:'ab2a',d:1,s:[1,0,1,0]},b:{id:'ab2b',d:1,s:[1,1,0,1]},ans:'B'},
+    {a:{id:'ab3a',d:2,s:[1,1,0,1,0,1]},b:{id:'ab3b',d:2,s:[1,0,1,0,1,1]},ans:'A'},
+    {a:{id:'ab4a',d:2,s:[1,0,0,1,1,0]},b:{id:'ab4b',d:2,s:[1,0,0,1,0,1]},ans:'B'},
+    {a:{id:'ab5a',d:3,s:[1,0,1,0,0,1,0,1]},b:{id:'ab5b',d:3,s:[1,0,1,0,1,0,0,1]},ans:'A'},
+  ];
+  const byD = d => P.filter(p=>p.d===d);
+  const byT = t => P.filter(p=>p.t.includes(t));
+  const byDT = (d,t) => P.filter(p=>p.d===d&&p.t.includes(t));
+  const getAB = d => { const r=AB.filter(x=>x.a.d===d); return r[Math.floor(Math.random()*r.length)]||AB[0]; };
+  const allTags = () => [...new Set(P.flatMap(p=>p.t))].sort();
+  return {P, AB, byD, byT, byDT, getAB, allTags};
+})();
+
+// ══════════════════════════════════════════
+//  STORAGE MODULE
+// ══════════════════════════════════════════
+const Store = (function(){
+  const g = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+  const s = (k,v) => { try { localStorage.setItem(k,JSON.stringify(v)); } catch {} };
+  const DEF_SET = {bpm:70,sessionPreset:'Short',soundPreset:'click',countIn:false,showReveal:true,haptics:true};
+  const getSet = () => Object.assign({},DEF_SET,g('nb_set')||{});
+  const saveSet = v => s('nb_set',v);
+  const getLogs = () => g('nb_logs')||[];
+  const addLog = e => { const l=getLogs(); l.push(e); s('nb_logs',l); };
+  const clearLogs = () => s('nb_logs',[]);
+  const getAdapt = () => Object.assign({difficulty:1,history:[],lastBPM:70},g('nb_adapt')||{});
+  const saveAdapt = v => s('nb_adapt',v);
+  const resetAdapt = () => s('nb_adapt',{difficulty:1,history:[],lastBPM:70});
+  const getFavs = () => g('nb_favs')||[];
+  const addFav = id => { const f=getFavs(); if(!f.includes(id)){f.push(id);s('nb_favs',f);} };
+  const remFav = id => s('nb_favs',getFavs().filter(x=>x!==id));
+  const isFav = id => getFavs().includes(id);
+  return {getSet,saveSet,getLogs,addLog,clearLogs,getAdapt,saveAdapt,resetAdapt,getFavs,addFav,remFav,isFav};
+})();
+
+// ══════════════════════════════════════════
+//  ADAPTIVE ENGINE MODULE
+// ══════════════════════════════════════════
+const Adaptive = (function(){
+  const getD = () => Math.max(1,Math.min(3,Store.getAdapt().difficulty));
+  const hint = () => {
+    const d=getD();
+    if(d===1)return '🌱 Gentle start — Level 1 patterns recommended';
+    if(d===2)return '🌿 Building strength — Level 2 patterns recommended';
+    return '🌳 Doing great — Level 3 patterns recommended';
+  };
+  const record = (completed,rating,bpm) => {
+    const a=Store.getAdapt(); a.lastBPM=bpm;
+    a.history.push({ts:Date.now(),completed,rating});
+    if(a.history.length>20)a.history=a.history.slice(-20);
+    const rec=a.history.slice(-5);
+    if(rec.length>=5&&rec.every(h=>h.completed)&&rec.every(h=>h.rating!=='hard')&&a.difficulty<3){
+      a.difficulty=Math.min(3,a.difficulty+1);
+      setTimeout(()=>showToast('🌿 Adaptive: difficulty increased!'),800);
+    }
+    if(rating==='hard'&&a.difficulty>1){
+      a.difficulty=Math.max(1,a.difficulty-1);
+      setTimeout(()=>showToast('🌱 Adaptive: keeping it gentle'),800);
+    }
+    Store.saveAdapt(a);
+  };
+  const suggestBPM = () => Store.getAdapt().lastBPM||Store.getSet().bpm;
+  return {getD,hint,record,suggestBPM};
+})();
+
+// ══════════════════════════════════════════
+//  AUDIO ENGINE MODULE
+// ══════════════════════════════════════════
+const Audio = (function(){
+  let ctx=null;
+  const getCtx = () => {
+    if(!ctx||ctx.state==='closed')ctx=new(window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended')ctx.resume();
+    return ctx;
+  };
+  const click = (t,accent,preset) => {
+    const c=getCtx(); preset=preset||Store.getSet().soundPreset;
+    if(preset==='kick'&&accent){
+      const o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.frequency.setValueAtTime(110,t);
+      o.frequency.exponentialRampToValueAtTime(38,t+.09);
+      g.gain.setValueAtTime(.65,t);g.gain.exponentialRampToValueAtTime(.001,t+.14);
+      o.start(t);o.stop(t+.15);
+    }
+    const sz=Math.ceil(c.sampleRate*.012),buf=c.createBuffer(1,sz,c.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<sz;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/sz,3);
+    const src=c.createBufferSource(),g2=c.createGain(),f=c.createBiquadFilter();
+    f.type='highpass';f.frequency.value=preset==='kick'?900:600;
+    src.buffer=buf;src.connect(f);f.connect(g2);g2.connect(c.destination);
+    g2.gain.setValueAtTime(accent?1:.5,t);src.start(t);
+  };
+  const haptic = () => { if(Store.getSet().haptics&&navigator.vibrate)navigator.vibrate(20); };
+  const test = () => {
+    try{const c=getCtx();click(c.currentTime,true);setTimeout(()=>click(getCtx().currentTime,false),280);setTimeout(()=>click(getCtx().currentTime,true),560);}catch{}
+  };
+  const now = () => { try{return getCtx().currentTime;}catch{return 0;} };
+  return {click,haptic,test,now,getCtx};
+})();
+
+// ══════════════════════════════════════════
+//  SESSION ENCOURAGEMENTS
+// ══════════════════════════════════════════
+const ENC = ['Nice rhythm. 🎯','That counts. 💙','Showing up builds the brain. 🧠','Good listening. 🎵','Every rep matters. 💪','Beautiful. 🌱','Solid session. ⭐','The brain was listening. 🧬','That was real work. ✨'];
+const getEnc = () => ENC[Math.floor(Math.random()*ENC.length)];
+
+// ══════════════════════════════════════════
+//  APP STATE
+// ══════════════════════════════════════════
+let _set = Store.getSet();
+let _stack = ['home-screen'];
+let _ciData = {};
+let _win='',_mood='',_diff='ok';
+let _bpm = _set.bpm;
+
+// Beat state
+let _handles=[],_playing=false,_exercise='steady',_level=1,_patIdx=0;
+let _beatTs=[],_tapHist=[],_flashTimer=null,_abCorrect=null;
+let _favFilter=false,_tagFilter=null,_tapMode='caregiver';
+
+// Groove state
+let _gBPM=60,_gPlaying=false,_gInterval=null,_gHits=0,_gStreak=0,_gBeatTs=[];
+
+// Voice state
+let _vBPM=60,_vPlaying=false,_vHandles=[],_vEx='count',_vPhraseIdx=0;
+const V_PHRASES=[['YOU','GOT','THIS'],['KEEP','GO','ING'],['ONE','MORE','DAY'],['HERE','WE','GO'],['YOU','ARE','STRONG'],['NICE','WORK','GREAT']];
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function goTo(id){
+  document.getElementById(_stack[_stack.length-1]).classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  _stack.push(id);
+  if(id==='beat-screen'){_bpm=_set.bpm;updBPM();renderPat();}
+  if(id==='history-screen')renderHistory();
+  if(id==='export-screen')renderExport();
+  if(id==='settings-screen')applySetUI();
+  if(id==='home-screen')renderHint();
+}
+function goBack(){
+  if(_stack.length<=1)return;
+  document.getElementById(_stack.pop()).classList.remove('active');
+  document.getElementById(_stack[_stack.length-1]).classList.add('active');
+}
+function stopAndBack(){stopPlayback();goBack();}
+
+// ══════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════
+function renderHint(){
+  const el=document.getElementById('adaptive-hint');
+  if(!el)return;
+  el.textContent=Adaptive.hint();
+  el.style.display='block';
+}
+
+function quickStart(){
+  showToast('⚡ Quick Start — stop anytime!',3000);
+  _ciData={energy:'Yes',pain:'No',session:'Short',quickStart:true};
+  _bpm=Adaptive.suggestBPM();
+  goTo('beat-screen');
+}
+
+// ══════════════════════════════════════════
+//  CHECK-IN
+// ══════════════════════════════════════════
+function ciAnswer(key,val,next){
+  _ciData[key]=val;
+  document.getElementById('ci-s'+(next-1)).classList.remove('active');
+  const d0=document.getElementById('ci-d'+(next-1));
+  d0.classList.remove('active');d0.classList.add('done');
+  document.getElementById('ci-s'+next).classList.add('active');
+  document.getElementById('ci-d'+next).classList.add('active');
+}
+function ciChoose(choice){
+  _ciData.session=choice;_ciData.timestamp=new Date().toISOString();
+  if(choice==='Skip'){
+    Store.addLog({type:'checkin',..._ciData,skip:true});
+    resetCI();goBack();
+    setTimeout(()=>showToast('💙 Showing up still counts. Rest is also progress.',4000),300);
+    return;
+  }
+  _set.sessionPreset=choice;
+  _bpm=Adaptive.suggestBPM();
+  Store.addLog({type:'checkin',..._ciData});
+  resetCI();goTo('beat-screen');
+}
+function resetCI(){
+  _ciData={};
+  for(let i=0;i<3;i++){
+    document.getElementById('ci-s'+i).classList.remove('active');
+    document.getElementById('ci-d'+i).classList.remove('active','done');
+  }
+  document.getElementById('ci-s0').classList.add('active');
+  document.getElementById('ci-d0').classList.add('active');
+}
+
+// ══════════════════════════════════════════
+//  BEAT REPS
+// ══════════════════════════════════════════
+const EX_INFO={
+  steady:{name:'STEADY BEAT',label:'Keep a steady pulse',hint:'Listen and tap along'},
+  echo:{name:'ECHO PATTERN',label:'Echo the pattern',hint:'Listen. The pause is their moment to respond.'},
+  abmatch:{name:'A/B MATCH',label:'Does B match A?',hint:'Listen to both — which matched the first?'},
+  fillgap:{name:'FILL THE GAP',label:'Spot the missing beat',hint:'One beat is silent — listen for the gap.'}
+};
+
+function getCurPat(){
+  if(_exercise==='abmatch')return PatLib.getAB(_level);
+  const pats=getFiltPats();
+  return pats.length?pats[_patIdx%pats.length]:PatLib.byD(_level)[0];
+}
+function getFiltPats(){
+  if(_favFilter){const f=Store.getFavs();return PatLib.P.filter(p=>f.includes(p.id)&&p.d===_level);}
+  if(_tagFilter)return PatLib.byDT(_level,_tagFilter);
+  return PatLib.byD(_level);
+}
+
+function renderPat(){
+  const info=EX_INFO[_exercise];
+  document.getElementById('pat-name').textContent=info.name;
+  document.getElementById('pat-label').textContent=info.label;
+  document.getElementById('pat-hint').textContent=info.hint;
+  document.getElementById('enc-box').style.display='none';
+  document.getElementById('ab-section').style.display=_exercise==='abmatch'?'block':'none';
+  document.getElementById('ab-reveal').style.display=_set.showReveal?'block':'none';
+  document.getElementById('ab-ans').style.display='none';
+  const pat=getCurPat();
+  const steps=_exercise==='abmatch'?pat.a.s:pat.s;
+  renderDots(steps,-1);renderSteps(steps,-1);updFavBtn();renderTagPills();
+}
+
+function renderDots(steps,ai){
+  const c=document.getElementById('beat-dots');c.innerHTML='';
+  steps.forEach((s,i)=>{const d=document.createElement('div');d.className='bdot'+(s===0?' rest':'')+(i===ai?' on':'');c.appendChild(d);});
+}
+function renderSteps(steps,ai){
+  const c=document.getElementById('pat-steps');c.innerHTML='';
+  steps.forEach((s,i)=>{const sp=document.createElement('span');sp.textContent=s?'TAP ':'___ ';if(s&&i===ai)sp.className='step-on';else if(!s)sp.className='step-off';c.appendChild(sp);});
+}
+function hilite(steps,i){renderDots(steps,i);renderSteps(steps,i);}
+
+function renderTagPills(){
+  const c=document.getElementById('tag-pills');c.innerHTML='';
+  if(_exercise==='abmatch')return;
+  PatLib.allTags().forEach(tag=>{
+    const b=document.createElement('button');
+    b.className='pill'+(_tagFilter===tag?' active':'');
+    b.textContent=tag;b.style.fontSize='11px';
+    b.onclick=()=>{_tagFilter=_tagFilter===tag?null:tag;_patIdx=0;renderPat();};
+    c.appendChild(b);
+  });
+}
+
+function updFavBtn(){
+  const btn=document.getElementById('fav-btn');if(!btn)return;
+  if(_exercise==='abmatch'){btn.textContent='☆';return;}
+  const p=getCurPat();
+  btn.textContent=p&&Store.isFav(p.id)?'⭐':'☆';
+}
+function toggleFav(){
+  if(_exercise==='abmatch')return;
+  const p=getCurPat();if(!p)return;
+  if(Store.isFav(p.id)){Store.remFav(p.id);showToast('Removed from favorites');}
+  else{Store.addFav(p.id);showToast('⭐ Added to favorites!');}
+  updFavBtn();
+}
+function toggleFavFilter(btn){
+  _favFilter=!_favFilter;_patIdx=0;
+  btn.classList.toggle('fav-on',_favFilter);btn.classList.toggle('active',_favFilter);
+  renderPat();
+}
+
+function selEx(ex,btn){
+  stopPlayback();_exercise=ex;_patIdx=0;
+  document.querySelectorAll('#ex-tabs .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');renderPat();
+}
+function selLevel(lv,btn){
+  stopPlayback();_level=lv;_patIdx=0;
+  document.querySelectorAll('[id^="lvl-"]').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');renderPat();
+}
+function setTapMode(mode,btn){
+  _tapMode=mode;
+  document.querySelectorAll('#tm-cg,#tm-pt').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tm-desc').textContent=mode==='patient'?'Hand them the phone — they tap the card themselves':'You tap the card when you notice them responding';
+}
+function changeBPM(d){_bpm=Math.max(50,Math.min(100,_bpm+d));updBPM();}
+function updBPM(){document.getElementById('bpm-num').textContent=_bpm;}
+
+// ── Playback ──
+function clearHandles(){_handles.forEach(t=>clearTimeout(t));_handles=[];_beatTs=[];}
+function stopPlayback(){
+  clearHandles();_playing=false;
+  document.getElementById('play-btn').textContent='▶ Play';
+  document.getElementById('wave-row').style.display='none';
+  const pc=document.getElementById('pat-card');
+  pc.classList.remove('playable','flash-green','flash-yellow','flash-red');
+  document.getElementById('tap-inline').style.display='none';
+}
+
+function schedPat(steps,offset,onDone){
+  const c=Audio.getCtx(),bi=60/_bpm;
+  let off=offset||0;
+  if(_set.countIn){for(let i=0;i<4;i++)Audio.click(c.currentTime+off+i*bi,i===0);off+=4*bi;}
+  _beatTs=[];
+  steps.forEach((step,idx)=>{
+    const t=c.currentTime+off+idx*bi,ms=(t-c.currentTime)*1000;
+    if(step===1){_beatTs.push(performance.now()+ms);}
+    const h=setTimeout(()=>{if(step===1){Audio.click(c.currentTime,idx===0);Audio.haptic();}hilite(steps,idx);},ms);
+    _handles.push(h);
+  });
+  const done=(off+steps.length*bi)*1000+80;
+  const dh=setTimeout(()=>{hilite(steps,-1);if(onDone)onDone();},done);
+  _handles.push(dh);
+  return off+steps.length*bi;
+}
+
+function playPattern(){
+  if(_playing){stopPlayback();return;}
+  clearHandles();_playing=true;
+  document.getElementById('play-btn').textContent='⏸ Playing';
+  document.getElementById('wave-row').style.display='flex';
+  document.getElementById('pat-card').classList.add('playable');
+  document.getElementById('tap-inline').style.display='block';
+  resetTapUI();
+  try{Audio.getCtx();}catch{}
+
+  if(_exercise==='steady'){
+    const p=getCurPat();
+    schedPat(p.s,0,()=>{clearHandles();_playing=false;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('wave-row').style.display='none';showEnc(getEnc());});
+  } else if(_exercise==='echo'){
+    const p=getCurPat(),bi=60/_bpm;
+    schedPat(p.s,0,()=>{
+      const ph=setTimeout(()=>{schedPat(p.s,0,()=>{clearHandles();_playing=false;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('wave-row').style.display='none';showEnc('Nice echo! The pause is where the magic happens. 🧠');});},2*bi*1000);
+      _handles.push(ph);
+    });
+  } else if(_exercise==='abmatch'){
+    const pair=getCurPat(),bi=60/_bpm;_abCorrect=pair.ans;
+    schedPat(pair.a.s,0,()=>{
+      const ph=setTimeout(()=>{schedPat(pair.b.s,0,()=>{clearHandles();_playing=false;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('wave-row').style.display='none';document.getElementById('ab-section').style.display='block';});},2*bi*1000);
+      _handles.push(ph);
+    });
+  } else if(_exercise==='fillgap'){
+    const p=getCurPat();
+    schedPat(p.s,0,()=>{clearHandles();_playing=false;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('wave-row').style.display='none';showEnc('Any attempt helps the brain rebuild timing. 🌱');});
+  }
+}
+
+function repeatPattern(){
+  if(_playing)return;
+  clearHandles();_playing=true;
+  document.getElementById('play-btn').textContent='⏸ Playing';
+  document.getElementById('wave-row').style.display='flex';
+  document.getElementById('pat-card').classList.add('playable');
+  document.getElementById('tap-inline').style.display='block';
+  resetTapUI();
+  const steps=_exercise==='abmatch'?getCurPat().a.s:getCurPat().s;
+  const bi=60/_bpm,gap=2;let done=0;
+  function doRep(){
+    schedPat(steps,0,()=>{done++;if(done<3){const h=setTimeout(doRep,gap*bi*1000);_handles.push(h);}else{clearHandles();_playing=false;document.getElementById('play-btn').textContent='▶ Play';document.getElementById('wave-row').style.display='none';showEnc('3 reps done! Repetition is how the brain rewires. 💪');}});
+  }
+  doRep();
+}
+
+function nextPattern(){stopPlayback();_patIdx++;renderPat();}
+function showEnc(msg){const e=document.getElementById('enc-box');e.textContent=msg;e.style.display='block';}
+
+function abAnswer(choice){
+  stopPlayback();
+  const ok=choice===_abCorrect;
+  document.getElementById('ab-ans').textContent=ok?'✅ That was the matching one!':'💙 Not quite — but the listening counts!';
+  document.getElementById('ab-ans').style.display='block';
+  showEnc('Answer logged! This kind of listening is real brain work. 🧠');
+}
+function revealAB(){
+  document.getElementById('ab-ans').textContent='Answer: Pattern '+(_abCorrect||'—');
+  document.getElementById('ab-ans').style.display='block';
+}
+
+// ── Tap timing ──
+function registerTap(){
+  if(!_playing||_beatTs.length===0)return;
+  const now=performance.now(),bi=(60/_bpm)*1000;
+  const wG=bi*.13,wY=bi*.3;
+  let min=Infinity;
+  _beatTs.forEach(t=>{const d=Math.abs(now-t);if(d<min)min=d;});
+  let grade,label;
+  if(min<=wG){grade='green';label='🟢 On the beat!';}
+  else if(min<=wY){grade='yellow';label='🟡 Close!';}
+  else{grade='red';label='🔴 Keep going';}
+  flashCard(grade,label);addTapDot(grade);
+  if(_set.haptics&&navigator.vibrate)navigator.vibrate(grade==='green'?30:15);
+}
+function flashCard(grade,label){
+  const pc=document.getElementById('pat-card'),lbl=document.getElementById('tap-lbl');
+  pc.classList.remove('flash-green','flash-yellow','flash-red');
+  lbl.classList.remove('green','yellow','red');
+  pc.classList.add('flash-'+grade);lbl.textContent=label;lbl.classList.add(grade);
+  if(_flashTimer)clearTimeout(_flashTimer);
+  _flashTimer=setTimeout(()=>{pc.classList.remove('flash-green','flash-yellow','flash-red');pc.classList.add('playable');lbl.classList.remove('green','yellow','red');lbl.textContent='—';},500);
+}
+function addTapDot(grade){
+  _tapHist.push(grade);if(_tapHist.length>12)_tapHist.shift();
+  const c=document.getElementById('tap-dots');c.innerHTML='';
+  _tapHist.forEach(g=>{const d=document.createElement('div');d.className='tdot '+g;c.appendChild(d);});
+}
+function resetTapUI(){
+  _tapHist=[];
+  const c=document.getElementById('tap-dots');if(c)c.innerHTML='';
+  const l=document.getElementById('tap-lbl');if(l){l.textContent='—';l.className='tap-lbl';}
+  const pc=document.getElementById('pat-card');if(pc)pc.classList.remove('flash-green','flash-yellow','flash-red');
+}
+
+// ══════════════════════════════════════════
+//  WIN LOG
+// ══════════════════════════════════════════
+function selWin(btn,val){
+  document.querySelectorAll('.win-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');_win=val;
+}
+function selMood(btn,val){
+  document.querySelectorAll('.mood-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');_mood=val;
+}
+function selDiff(btn,val){
+  document.querySelectorAll('#diff-easy,#diff-ok,#diff-hard').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');_diff=val;
+}
+function saveWin(){
+  const note=document.getElementById('win-note').value;
+  const entry={type:'winlog',timestamp:new Date().toISOString(),win:_win,mood:_mood,difficulty:_diff,bpm:_bpm,note,sessionType:_set.sessionPreset};
+  Store.addLog(entry);
+  Adaptive.record(true,_diff,_bpm);
+  // reset
+  document.querySelectorAll('.win-opt').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.mood-opt').forEach(b=>b.classList.remove('sel'));
+  ['diff-easy','diff-ok','diff-hard'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('diff-ok').classList.add('active');
+  document.getElementById('win-note').value='';
+  _win='';_mood='';_diff='ok';
+  showToast('⭐ Win saved!',2500);
+  goBack();
+}
+
+// ══════════════════════════════════════════
+//  GROOVE MODE MODULE
+// ══════════════════════════════════════════
+const GrooveModule = (function(){
+  const MSGS=['Nice groove. 🎶','Good rhythm. 🎵','Keep going! 💙','Feel the beat. 🌊','That\'s it! ⭐','Beautiful. ✨'];
+  function spawnNote(){
+    const lane=document.getElementById('groove-lane');
+    const note=document.createElement('div');
+    note.className='groove-note';
+    const bi=60/_gBPM;
+    note.style.animationDuration=(bi*2.2)+'s';
+    note.textContent='🎵';
+    note.style.top='-60px';
+    lane.appendChild(note);
+    _gBeatTs.push(performance.now()+(bi*1.1*1000));
+    setTimeout(()=>{if(note.parentNode)note.parentNode.removeChild(note);},bi*2200+100);
+  }
+  function start(){
+    _gPlaying=true;_gHits=0;_gStreak=0;
+    document.getElementById('groove-play').textContent='⏸ Playing';
+    document.getElementById('groove-fb').textContent='Tap when the note hits the ring!';
+    const bi=60/_gBPM;
+    spawnNote();
+    _gInterval=setInterval(spawnNote,bi*1000);
+    Audio.getCtx();
+  }
+  function stop(){
+    _gPlaying=false;
+    if(_gInterval){clearInterval(_gInterval);_gInterval=null;}
+    _gBeatTs=[];
+    document.getElementById('groove-play').textContent='▶ Start';
+    document.getElementById('groove-tap').classList.remove('lit');
+    document.getElementById('groove-fb').textContent='Ready when you are';
+    document.getElementById('groove-flash').className='groove-flash';
+  }
+  function toggle(){if(_gPlaying)stop();else start();}
+  function tap(){
+    if(!_gPlaying)return;
+    const now=performance.now(),bi=(60/_gBPM)*1000,w=bi*.35;
+    let min=Infinity;
+    _gBeatTs.forEach(t=>{const d=Math.abs(now-t);if(d<min)min=d;});
+    const hit=min<=w;
+    const btn=document.getElementById('groove-tap'),fl=document.getElementById('groove-flash');
+    btn.classList.add('lit');setTimeout(()=>btn.classList.remove('lit'),200);
+    if(hit){
+      _gHits++;_gStreak++;
+      fl.className='groove-flash hit';setTimeout(()=>fl.className='groove-flash',180);
+      Audio.click(Audio.getCtx().currentTime,true);Audio.haptic();
+      const msg=MSGS[Math.floor(Math.random()*MSGS.length)];
+      document.getElementById('groove-fb').textContent=msg;
+    } else {
+      _gStreak=0;fl.className='groove-flash miss';setTimeout(()=>fl.className='groove-flash',150);
+    }
+    document.getElementById('g-hits').textContent=_gHits;
+    document.getElementById('g-streak').textContent=_gStreak;
+  }
+  return {start,stop,toggle,tap};
+})();
+
+function changeGrooveBPM(d){_gBPM=Math.max(40,Math.min(80,_gBPM+d));document.getElementById('g-bpm').textContent=_gBPM;}
+function grooveToggle(){GrooveModule.toggle();}
+function grooveStop(){GrooveModule.stop();}
+function grooveTap(){GrooveModule.tap();}
+
+// ══════════════════════════════════════════
+//  VOICE REPS MODULE
+// ══════════════════════════════════════════
+const VoiceModule = (function(){
+  function buildCountDots(n){
+    const c=document.getElementById('voice-beat-dots');c.innerHTML='';
+    for(let i=0;i<n;i++){const d=document.createElement('div');d.className='voice-bdot';c.appendChild(d);}
+  }
+  function pulseDot(idx){
+    const dots=document.querySelectorAll('.voice-bdot');
+    dots.forEach(d=>d.classList.remove('on'));
+    if(dots[idx])dots[idx].classList.add('on');
+  }
+  function pulseWord(){
+    const w=document.getElementById('voice-word');
+    w.classList.add('pulse');setTimeout(()=>w.classList.remove('pulse'),120);
+  }
+
+  function startCount(){
+    const bi=60/_vBPM*1000;let idx=0,count=1;
+    buildCountDots(5);
+    document.getElementById('voice-hint').textContent='Say each number out loud on the beat';
+    function tick(){
+      document.getElementById('voice-word').textContent=count;
+      pulseDot(count-1);pulseWord();
+      Audio.click(Audio.getCtx().currentTime,count===1);Audio.haptic();
+      count=count>=5?1:count+1;
+      const h=setTimeout(tick,bi);_vHandles.push(h);
+    }
+    tick();
+  }
+
+  function startPhrase(){
+    const phrase=V_PHRASES[_vPhraseIdx];
+    const bi=60/_vBPM*1000;let idx=0;
+    buildCountDots(phrase.length);
+    document.getElementById('voice-hint').textContent='Say each word on the beat';
+    function tick(){
+      document.getElementById('voice-word').textContent=phrase[idx%phrase.length];
+      pulseDot(idx%phrase.length);pulseWord();
+      Audio.click(Audio.getCtx().currentTime,idx%phrase.length===0);Audio.haptic();
+      idx++;
+      const h=setTimeout(tick,bi);_vHandles.push(h);
+    }
+    tick();
+  }
+
+  function startYesNo(){
+    const bi=60/_vBPM*1000;let idx=0;const words=['YES','NO','YES','NO'];
+    buildCountDots(2);
+    document.getElementById('voice-hint').textContent='Say YES or NO on each beat';
+    function tick(){
+      const w=words[idx%words.length];
+      document.getElementById('voice-word').textContent=w;
+      pulseDot(idx%2);pulseWord();
+      Audio.click(Audio.getCtx().currentTime,true);Audio.haptic();
+      idx++;
+      const h=setTimeout(tick,bi);_vHandles.push(h);
+    }
+    tick();
+  }
+
+  function start(){
+    _vPlaying=true;
+    document.getElementById('voice-play').textContent='⏸ Playing';
+    Audio.getCtx();
+    if(_vEx==='count')startCount();
+    else if(_vEx==='phrase')startPhrase();
+    else startYesNo();
+  }
+  function stop(){
+    _vPlaying=false;_vHandles.forEach(h=>clearTimeout(h));_vHandles=[];
+    document.getElementById('voice-play').textContent='▶ Start';
+    document.getElementById('voice-word').textContent='—';
+    document.getElementById('voice-hint').textContent='Choose an exercise above, then tap Start';
+    const dots=document.querySelectorAll('.voice-bdot');dots.forEach(d=>d.classList.remove('on'));
+    document.getElementById('voice-beat-dots').innerHTML='';
+  }
+  function toggle(){if(_vPlaying)stop();else start();}
+  return {start,stop,toggle};
+})();
+
+function changeVoiceBPM(d){_vBPM=Math.max(40,Math.min(80,_vBPM+d));document.getElementById('v-bpm').textContent=_vBPM;}
+function voiceToggle(){VoiceModule.toggle();}
+function voiceStop(){VoiceModule.stop();}
+function selVoiceEx(ex,btn){
+  VoiceModule.stop();_vEx=ex;
+  document.querySelectorAll('#voice-tabs .pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');
+  const phraseEl=document.getElementById('phrase-sel');
+  if(ex==='phrase'){
+    phraseEl.style.display='block';
+    const c=document.getElementById('phrase-pills');c.innerHTML='';
+    V_PHRASES.forEach((ph,i)=>{
+      const b=document.createElement('button');b.className='pill'+(i===_vPhraseIdx?' active':'');
+      b.textContent=ph.join('·');b.onclick=()=>{_vPhraseIdx=i;document.querySelectorAll('#phrase-pills .pill').forEach(p=>p.classList.remove('active'));b.classList.add('active');};
+      c.appendChild(b);
+    });
+  } else phraseEl.style.display='none';
+}
+
+// ══════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════
+function renderHistory(){
+  const c=document.getElementById('history-list');c.innerHTML='';
+  const logs=Store.getLogs().filter(l=>l.type==='winlog').reverse();
+  if(!logs.length){c.innerHTML='<div class="empty-state"><span class="empty-icon">📋</span>No sessions logged yet.<br>Complete a session and save a Win to see it here.</div>';return;}
+  logs.forEach((log,i)=>{
+    const d=new Date(log.timestamp);
+    const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const timeStr=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const item=document.createElement('div');item.className='hist-item';
+    item.innerHTML=`<div class="hist-date">${dateStr} <span style="font-size:12px;color:var(--text-muted);font-weight:600">${timeStr}</span></div>
+      <div class="hist-meta">${log.sessionType||'Session'} · BPM ${log.bpm||'—'} · Difficulty: ${log.difficulty||'ok'}</div>
+      <div class="hist-win">${log.win?'⭐ '+log.win:''} ${log.mood?'· '+log.mood:''}</div>`;
+    const detail=document.createElement('div');detail.className='hist-detail';detail.id='hd-'+i;
+    detail.innerHTML=`${log.note?'📝 '+log.note+'<br>':''}Saved: ${dateStr} ${timeStr}`;
+    item.onclick=()=>detail.classList.toggle('open');
+    item.appendChild(detail);c.appendChild(item);
+  });
+}
+
+// ══════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════
+function renderExport(){
+  const logs=Store.getLogs().filter(l=>l.type==='winlog');
+  const text=logs.map(l=>{
+    const d=new Date(l.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    return `${d} — ${l.sessionType||'Session'} — BPM ${l.bpm||'—'} — Win: ${l.win||'—'} — Mood: ${l.mood||'—'}${l.note?` — Note: ${l.note}`:''}`;
+  }).join('\n');
+  document.getElementById('exp-text').textContent=text||'No sessions logged yet.';
+  document.getElementById('exp-json').textContent=JSON.stringify(logs,null,2);
+}
+function copyExp(type){
+  const el=document.getElementById(type==='text'?'exp-text':'exp-json');
+  try{navigator.clipboard.writeText(el.textContent).then(()=>showToast('📋 Copied!'));}
+  catch{const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');showToast('📋 Copied!');}
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════
+function applySetUI(){
+  _set=Store.getSet();
+  document.getElementById('s-bpm').value=_set.bpm;
+  document.getElementById('s-bpm-val').textContent=_set.bpm;
+  ['short','normal'].forEach(p=>{document.getElementById('sp-'+p).classList.toggle('active',_set.sessionPreset.toLowerCase()===p);});
+  ['click','kick'].forEach(s=>{document.getElementById('snd-'+s).classList.toggle('active',_set.soundPreset===s);});
+  document.getElementById('tog-countin').classList.toggle('on',_set.countIn);
+  document.getElementById('tog-reveal').classList.toggle('on',_set.showReveal);
+  document.getElementById('tog-haptic').classList.toggle('on',_set.haptics);
+}
+function sBPMChange(v){document.getElementById('s-bpm-val').textContent=v;_set.bpm=+v;Store.saveSet(_set);}
+function selPreset(p,btn){_set.sessionPreset=p;Store.saveSet(_set);document.querySelectorAll('[id^="sp-"]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function selSound(s,btn){_set.soundPreset=s;Store.saveSet(_set);document.querySelectorAll('[id^="snd-"]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function togSet(key){_set[key]=!_set[key];Store.saveSet(_set);const ids={countIn:'tog-countin',showReveal:'tog-reveal',haptics:'tog-haptic'};document.getElementById(ids[key]).classList.toggle('on',_set[key]);}
+function testSound(){Audio.test();}
+function clearAllLogs(){if(confirm('Clear all session logs? This cannot be undone.')){Store.clearLogs();showToast('Logs cleared.');}}
+function resetAdaptive(){Store.resetAdapt();showToast('Adaptive engine reset.');renderHint();}
+function replayOnboarding(){_obCur=0;obRender();document.getElementById('onboarding').classList.remove('hidden');goBack();}
+
+// ══════════════════════════════════════════
+//  ONBOARDING
+// ══════════════════════════════════════════
+const OB_SLIDES=5;let _obCur=0;
+function obRender(){
+  document.getElementById('ob-track').style.transform=`translateX(-${_obCur*100}%)`;
+  const sc=document.querySelector('.ob-scroll');if(sc)sc.scrollTop=0;
+  const dots=document.getElementById('ob-dots');dots.innerHTML='';
+  for(let i=0;i<OB_SLIDES;i++){const d=document.createElement('div');d.className='ob-dot'+(i===_obCur?' active':'');dots.appendChild(d);}
+  document.getElementById('ob-prev').style.visibility=_obCur===0?'hidden':'visible';
+  document.getElementById('ob-next').textContent=_obCur===OB_SLIDES-1?'Get Started →':'Next →';
+}
+function obNext(){if(_obCur<OB_SLIDES-1){_obCur++;obRender();}else{document.getElementById('onboarding').classList.add('hidden');localStorage.setItem('nb_ob','1');}}
+function obPrev(){if(_obCur>0){_obCur--;obRender();}}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+let _toastTimer=null;
+function showToast(msg,dur=2200){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  if(_toastTimer)clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+(function init(){
+  _set=Store.getSet();_bpm=_set.bpm;
+  document.getElementById('bpm-num').textContent=_bpm;
+  renderPat();renderHint();
+  // Onboarding
+  if(!localStorage.getItem('nb_ob')){
+    document.getElementById('onboarding').classList.remove('hidden');
+    obRender();
+  }
+})();
+</script>
+</body>
+</html>
